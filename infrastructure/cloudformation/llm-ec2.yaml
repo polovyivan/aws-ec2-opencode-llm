@@ -1,0 +1,289 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: >-
+  Cost-aware EC2 GPU infrastructure for running a containerized coding LLM.
+  Access is provided through AWS Systems Manager; no inbound ports are opened.
+
+Metadata:
+  AWS::CloudFormation::Interface:
+    ParameterGroups:
+      - Label:
+          default: Project
+        Parameters:
+          - ProjectName
+      - Label:
+          default: Compute and storage
+        Parameters:
+          - InstanceType
+          - GpuAmiSsmParameter
+          - RootVolumeSize
+      - Label:
+          default: Network
+        Parameters:
+          - VpcCidr
+          - PublicSubnetCidr
+    ParameterLabels:
+      ProjectName:
+        default: Project name
+      InstanceType:
+        default: GPU instance type
+      GpuAmiSsmParameter:
+        default: GPU AMI Parameter Store path
+      RootVolumeSize:
+        default: Root volume size (GiB)
+      VpcCidr:
+        default: VPC CIDR
+      PublicSubnetCidr:
+        default: Public subnet CIDR
+
+Parameters:
+  ProjectName:
+    Type: String
+    Default: aws-ec2-opencode-llm
+    Description: Used in resource names and tags.
+    AllowedPattern: "^[a-zA-Z][a-zA-Z0-9-]{2,31}$"
+    ConstraintDescription: Use 3-32 letters, numbers, or hyphens, starting with a letter.
+
+  InstanceType:
+    Type: String
+    Default: g4dn.xlarge
+    Description: >-
+      g4dn.xlarge is the lower-cost baseline with one NVIDIA T4 and 16 GiB VRAM.
+      Choose a newer family when the selected model needs more VRAM or throughput.
+    AllowedValues:
+      - g4dn.xlarge
+      - g4dn.2xlarge
+      - g5.xlarge
+      - g5.2xlarge
+      - g6.xlarge
+      - g6.2xlarge
+      - g6e.xlarge
+
+  GpuAmiSsmParameter:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/ecs/optimized-ami/amazon-linux-2023/gpu/recommended/image_id
+    Description: >-
+      Regional SSM public parameter containing the current ECS-optimized
+      Amazon Linux 2023 GPU AMI ID.
+
+  RootVolumeSize:
+    Type: Number
+    Default: 100
+    MinValue: 50
+    MaxValue: 1000
+    Description: Encrypted gp3 storage for the OS, container images, and model cache.
+
+  VpcCidr:
+    Type: String
+    Default: 10.42.0.0/16
+    Description: IPv4 CIDR for the tutorial VPC.
+    AllowedPattern: "^(10|172|192)\\.([0-9]{1,3}\\.){2}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$"
+    ConstraintDescription: Enter a private IPv4 CIDR, for example 10.42.0.0/16.
+
+  PublicSubnetCidr:
+    Type: String
+    Default: 10.42.1.0/24
+    Description: IPv4 CIDR for the public subnet.
+    AllowedPattern: "^(10|172|192)\\.([0-9]{1,3}\\.){2}[0-9]{1,3}/([0-9]|[12][0-9]|3[0-2])$"
+    ConstraintDescription: Enter a private IPv4 CIDR, for example 10.42.1.0/24.
+
+Resources:
+  LlmVpc:
+    Type: AWS::EC2::VPC
+    Properties:
+      CidrBlock: !Ref VpcCidr
+      EnableDnsHostnames: true
+      EnableDnsSupport: true
+      InstanceTenancy: default
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-vpc
+        - Key: Project
+          Value: !Ref ProjectName
+
+  InternetGateway:
+    Type: AWS::EC2::InternetGateway
+    Properties:
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-igw
+        - Key: Project
+          Value: !Ref ProjectName
+
+  InternetGatewayAttachment:
+    Type: AWS::EC2::VPCGatewayAttachment
+    Properties:
+      InternetGatewayId: !Ref InternetGateway
+      VpcId: !Ref LlmVpc
+
+  PublicSubnet:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref LlmVpc
+      CidrBlock: !Ref PublicSubnetCidr
+      MapPublicIpOnLaunch: true
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-public-subnet
+        - Key: Project
+          Value: !Ref ProjectName
+
+  PublicRouteTable:
+    Type: AWS::EC2::RouteTable
+    Properties:
+      VpcId: !Ref LlmVpc
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-public-routes
+        - Key: Project
+          Value: !Ref ProjectName
+
+  DefaultRoute:
+    Type: AWS::EC2::Route
+    DependsOn: InternetGatewayAttachment
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      GatewayId: !Ref InternetGateway
+
+  PublicSubnetRouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      RouteTableId: !Ref PublicRouteTable
+      SubnetId: !Ref PublicSubnet
+
+  LlmSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: No inbound access; outbound access for SSM and model downloads.
+      VpcId: !Ref LlmVpc
+      SecurityGroupEgress:
+        - Description: Allow HTTPS and external model or container downloads.
+          IpProtocol: "-1"
+          CidrIp: 0.0.0.0/0
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-instance-sg
+        - Key: Project
+          Value: !Ref ProjectName
+
+  LlmInstanceRole:
+    Type: AWS::IAM::Role
+    Properties:
+      Description: Allows the EC2 instance to register with AWS Systems Manager.
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - ec2.amazonaws.com
+            Action:
+              - sts:AssumeRole
+      ManagedPolicyArns:
+        - !Sub arn:${AWS::Partition}:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Tags:
+        - Key: Project
+          Value: !Ref ProjectName
+
+  LlmInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref LlmInstanceRole
+
+  LlmInstance:
+    Type: AWS::EC2::Instance
+    DependsOn: DefaultRoute
+    Properties:
+      ImageId: !Ref GpuAmiSsmParameter
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref LlmInstanceProfile
+      EbsOptimized: true
+      InstanceInitiatedShutdownBehavior: stop
+      Monitoring: false
+      MetadataOptions:
+        HttpEndpoint: enabled
+        HttpPutResponseHopLimit: 1
+        HttpTokens: required
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: true
+          DeleteOnTermination: true
+          DeviceIndex: "0"
+          GroupSet:
+            - !Ref LlmSecurityGroup
+          SubnetId: !Ref PublicSubnet
+      BlockDeviceMappings:
+        - DeviceName: /dev/xvda
+          Ebs:
+            DeleteOnTermination: true
+            Encrypted: true
+            VolumeSize: !Ref RootVolumeSize
+            VolumeType: gp3
+      UserData:
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          set -euxo pipefail
+
+          if ! command -v amazon-ssm-agent >/dev/null 2>&1; then
+            dnf install -y "https://s3.${AWS::Region}.amazonaws.com/amazon-ssm-${AWS::Region}/latest/linux_amd64/amazon-ssm-agent.rpm"
+          fi
+
+          systemctl enable --now amazon-ssm-agent
+          systemctl enable --now docker
+          usermod -aG docker ec2-user
+
+          install -d -m 0755 /usr/local/lib/docker/cli-plugins
+          curl -fL \
+            "https://github.com/docker/compose/releases/download/v5.4.0/docker-compose-linux-x86_64" \
+            -o /tmp/docker-compose
+          echo "837fd1d35bf6a494f41b5b5988269a7be79de337cf1a1a6ff0e45ab51bb4e9be  /tmp/docker-compose" \
+            | sha256sum -c -
+          install -m 0755 \
+            /tmp/docker-compose \
+            /usr/local/lib/docker/cli-plugins/docker-compose
+
+          install -d -m 0755 -o ec2-user -g ec2-user /opt/opencode-llm
+          nvidia-smi > /var/log/opencode-llm-nvidia-smi.log
+          docker info > /var/log/opencode-llm-docker-info.log
+          docker compose version > /var/log/opencode-llm-docker-compose-version.log
+          touch /opt/opencode-llm/INFRASTRUCTURE_READY
+          chown ec2-user:ec2-user /opt/opencode-llm/INFRASTRUCTURE_READY
+      Tags:
+        - Key: Name
+          Value: !Sub ${ProjectName}-gpu
+        - Key: Project
+          Value: !Ref ProjectName
+        - Key: Workload
+          Value: coding-llm
+
+Outputs:
+  InstanceId:
+    Description: EC2 instance ID used as the Systems Manager session target.
+    Value: !Ref LlmInstance
+
+  InstanceType:
+    Description: Selected EC2 GPU instance type.
+    Value: !Ref InstanceType
+
+  ResolvedGpuAmiId:
+    Description: Regional AMI ID resolved from the public SSM parameter.
+    Value: !Ref GpuAmiSsmParameter
+
+  PublicIp:
+    Description: Public address used only for outbound internet access; no inbound rules exist.
+    Value: !GetAtt LlmInstance.PublicIp
+
+  SsmShellCommand:
+    Description: Start an interactive Session Manager shell.
+    Value: !Sub aws ssm start-session --region ${AWS::Region} --target ${LlmInstance}
+
+  SsmPortForwardCommand:
+    Description: Forward local port 11434 to the future Ollama service on the instance.
+    Value: !Sub >-
+      aws ssm start-session --region ${AWS::Region} --target ${LlmInstance}
+      --document-name AWS-StartPortForwardingSession
+      --parameters '{"portNumber":["11434"],"localPortNumber":["11434"]}'
+
+  WorkingDirectory:
+    Description: Directory reserved for the Docker Compose configuration.
+    Value: /opt/opencode-llm

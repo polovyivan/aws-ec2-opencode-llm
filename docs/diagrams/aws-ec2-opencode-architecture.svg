@@ -1,0 +1,177 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">OpenCode connected securely to an open-source coding LLM on an AWS EC2 GPU instance</title>
+  <desc id="desc">A local Git repository is operated on by OpenCode. Model requests enter a localhost port, pass through an encrypted AWS Systems Manager port-forwarding tunnel, reach the SSM Agent on an EC2 GPU instance, and are served by Ollama and a Qwen coding model using an NVIDIA L4 GPU. CloudFormation provisions the infrastructure. The security group has no inbound rules.</desc>
+  <defs>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#0f172a" flood-opacity="0.12"/>
+    </filter>
+    <marker id="arrow-blue" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#2563eb"/></marker>
+    <marker id="arrow-green" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#059669"/></marker>
+    <marker id="arrow-orange" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#f97316"/></marker>
+    <style>
+      text { font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
+      .heading { font-weight: 700; fill: #0f172a; }
+      .label { font-weight: 650; fill: #0f172a; }
+      .muted { fill: #64748b; }
+      .small { font-size: 13px; }
+      .request { fill: none; stroke: #2563eb; stroke-width: 4; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 12 11; marker-end: url(#arrow-blue); animation: request-flow 1.4s linear infinite; }
+      .response { fill: none; stroke: #059669; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 8 12; marker-end: url(#arrow-green); animation: response-flow 1.4s linear infinite; }
+      .provision { fill: none; stroke: #f97316; stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 7 9; marker-end: url(#arrow-orange); }
+      @keyframes request-flow { to { stroke-dashoffset: -46; } }
+      @keyframes response-flow { to { stroke-dashoffset: 40; } }
+      @media (prefers-reduced-motion: reduce) { .request, .response { animation: none; } }
+    </style>
+  </defs>
+
+  <rect width="1600" height="900" fill="#f8fafc"/>
+  <text x="60" y="65" font-size="30" class="heading">Run an Open-Source Coding LLM on AWS EC2 and Connect It to OpenCode</text>
+  <text x="60" y="96" font-size="15" class="muted">Private model access over AWS Systems Manager — no inbound SSH or LLM API port</text>
+
+  <g filter="url(#shadow)">
+    <rect x="60" y="150" width="350" height="550" rx="18" fill="#ffffff" stroke="#64748b" stroke-width="2"/>
+    <path d="M60 194 H410" stroke="#cbd5e1"/>
+    <rect x="60" y="150" width="350" height="44" rx="18" fill="#f1f5f9"/>
+    <rect x="60" y="177" width="350" height="17" fill="#f1f5f9"/>
+    <text x="86" y="178" font-size="14" font-weight="700" fill="#334155">LOCAL COMPUTER</text>
+  </g>
+
+  <g>
+    <rect x="100" y="230" width="270" height="86" rx="13" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+    <circle cx="138" cy="273" r="22" fill="#2563eb"/>
+    <text x="138" y="278" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">GIT</text>
+    <text x="174" y="264" font-size="15" class="label">Local Git repository</text>
+    <text x="174" y="288" font-size="13" class="muted">Source code and tests</text>
+
+    <rect x="100" y="360" width="270" height="86" rx="13" fill="#eef2ff" stroke="#4f46e5" stroke-width="2"/>
+    <circle cx="138" cy="403" r="22" fill="#4f46e5"/>
+    <text x="138" y="408" text-anchor="middle" font-size="12" font-weight="700" fill="#fff">OC</text>
+    <text x="174" y="394" font-size="15" class="label">OpenCode</text>
+    <text x="174" y="418" font-size="13" class="muted">Coding agent and tools</text>
+
+    <rect x="100" y="490" width="270" height="86" rx="13" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+    <circle cx="138" cy="533" r="22" fill="#059669"/>
+    <text x="138" y="537" text-anchor="middle" font-size="9" font-weight="700" fill="#fff">:11434</text>
+    <text x="174" y="524" font-size="15" class="label">localhost:11434</text>
+    <text x="174" y="548" font-size="13" class="muted">Local end of tunnel</text>
+
+    <rect x="100" y="614" width="270" height="44" rx="10" fill="#f8fafc" stroke="#cbd5e1"/>
+    <text x="235" y="641" text-anchor="middle" font-size="12" fill="#475569">AWS CLI + Session Manager plugin</text>
+  </g>
+
+  <path d="M235 316 V360" fill="none" stroke="#64748b" stroke-width="2" marker-end="url(#arrow-blue)" opacity="0.65"/>
+  <text x="248" y="343" font-size="11" fill="#64748b">reads + edits</text>
+  <path class="request" d="M235 446 V490"/>
+
+  <g filter="url(#shadow)">
+    <rect x="438" y="430" width="174" height="138" rx="22" fill="#fffbeb" stroke="#d97706" stroke-width="2"/>
+    <circle cx="525" cy="423" r="27" fill="#d97706"/>
+    <text x="525" y="428" text-anchor="middle" font-size="11" font-weight="700" fill="#fff">TLS</text>
+    <text x="525" y="478" text-anchor="middle" font-size="13" font-weight="700" fill="#92400e">SSM PORT FORWARD</text>
+    <text x="525" y="505" text-anchor="middle" font-size="12" fill="#475569">Encrypted tunnel</text>
+    <text x="525" y="529" text-anchor="middle" font-size="12" fill="#475569">No inbound rule</text>
+  </g>
+
+  <g filter="url(#shadow)">
+    <rect x="640" y="120" width="900" height="630" rx="20" fill="#fff" stroke="#ff9900" stroke-width="3"/>
+    <rect x="640" y="120" width="900" height="48" rx="20" fill="#fff7ed"/>
+    <rect x="640" y="148" width="900" height="20" fill="#fff7ed"/>
+    <text x="670" y="151" font-size="14" font-weight="700" fill="#9a3412">AWS CLOUD</text>
+  </g>
+
+  <rect x="680" y="195" width="820" height="515" rx="15" fill="#fff" stroke="#94a3b8" stroke-dasharray="7 7"/>
+  <text x="702" y="224" font-size="12" font-weight="700" fill="#475569">VPC</text>
+  <rect x="710" y="242" width="750" height="430" rx="14" fill="#fbfffc" stroke="#22c55e" stroke-dasharray="7 7"/>
+  <text x="732" y="270" font-size="11" font-weight="700" fill="#166534">SUBNET — OUTBOUND INTERNET ACCESS</text>
+
+  <g filter="url(#shadow)">
+    <rect x="750" y="300" width="660" height="320" rx="14" fill="#fff" stroke="#f97316" stroke-width="2"/>
+    <rect x="750" y="300" width="660" height="42" rx="14" fill="#fff7ed"/>
+    <rect x="750" y="326" width="660" height="16" fill="#fff7ed"/>
+    <text x="775" y="327" font-size="13" font-weight="700" fill="#9a3412">EC2 GPU INSTANCE — g6.xlarge</text>
+  </g>
+
+  <g>
+    <rect x="785" y="376" width="150" height="86" rx="12" fill="#fef3c7" stroke="#d97706" stroke-width="2"/>
+    <text x="860" y="411" text-anchor="middle" font-size="14" class="label">SSM Agent</text>
+    <text x="860" y="436" text-anchor="middle" font-size="12" class="muted">Tunnel endpoint</text>
+
+    <rect x="785" y="496" width="150" height="78" rx="12" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+    <text x="860" y="528" text-anchor="middle" font-size="13" class="label">127.0.0.1:11434</text>
+    <text x="860" y="551" text-anchor="middle" font-size="12" class="muted">Host-only bind</text>
+  </g>
+
+  <g>
+    <rect x="970" y="352" width="400" height="230" rx="14" fill="#fff" stroke="#2563eb" stroke-width="2"/>
+    <rect x="970" y="352" width="400" height="36" rx="14" fill="#eff6ff"/>
+    <rect x="970" y="375" width="400" height="13" fill="#eff6ff"/>
+    <text x="991" y="376" font-size="12" font-weight="700" fill="#1e3a8a">DOCKER COMPOSE</text>
+
+    <rect x="1000" y="412" width="150" height="80" rx="12" fill="#eef2ff" stroke="#4f46e5" stroke-width="2"/>
+    <text x="1075" y="444" text-anchor="middle" font-size="14" class="label">Ollama API</text>
+    <text x="1075" y="469" text-anchor="middle" font-size="12" class="muted">OpenAI-compatible</text>
+
+    <rect x="1180" y="412" width="150" height="80" rx="12" fill="#faf5ff" stroke="#9333ea" stroke-width="2"/>
+    <text x="1255" y="444" text-anchor="middle" font-size="14" class="label">Coding LLM</text>
+    <text x="1255" y="469" text-anchor="middle" font-size="12" class="muted">Qwen Coder</text>
+
+    <rect x="1090" y="516" width="150" height="48" rx="12" fill="#f0fdf4" stroke="#16a34a" stroke-width="2"/>
+    <text x="1165" y="538" text-anchor="middle" font-size="13" class="label">NVIDIA L4 GPU</text>
+    <text x="1165" y="555" text-anchor="middle" font-size="11" class="muted">Model inference</text>
+  </g>
+
+  <g>
+    <rect x="750" y="638" width="260" height="54" rx="11" fill="#fff1f2" stroke="#e11d48"/>
+    <text x="880" y="660" text-anchor="middle" font-size="12" class="label">IAM instance role</text>
+    <text x="880" y="680" text-anchor="middle" font-size="11" class="muted">AmazonSSMManagedInstanceCore</text>
+
+    <path d="M1050 650 C1050 638 1230 638 1230 650 V683 C1230 695 1050 695 1050 683 Z" fill="#f8fafc" stroke="#64748b"/>
+    <ellipse cx="1140" cy="650" rx="90" ry="12" fill="#f8fafc" stroke="#64748b"/>
+    <text x="1140" y="669" text-anchor="middle" font-size="12" class="label">Encrypted gp3 EBS</text>
+    <text x="1140" y="686" text-anchor="middle" font-size="11" class="muted">Persistent model cache</text>
+
+    <rect x="1260" y="638" width="170" height="54" rx="11" fill="#f0fdfa" stroke="#0f766e"/>
+    <text x="1345" y="660" text-anchor="middle" font-size="12" class="label">Security group</text>
+    <text x="1345" y="680" text-anchor="middle" font-size="11" class="muted">No inbound rules</text>
+  </g>
+
+  <path class="request" d="M370 533 H438"/>
+  <path class="request" d="M612 499 H690 V419 H785"/>
+  <path class="request" d="M860 462 V496"/>
+  <path class="request" d="M935 535 H960 V452 H1000"/>
+  <path class="request" d="M1150 452 H1180"/>
+  <path d="M1255 492 V505 H1165 V516" fill="none" stroke="#16a34a" stroke-width="3" marker-end="url(#arrow-green)"/>
+  <text x="972" y="515" font-size="11" fill="#1d4ed8">HTTP API</text>
+  <text x="1158" y="438" font-size="11" fill="#1d4ed8">prompt</text>
+  <text x="1267" y="518" font-size="11" fill="#166534">CUDA</text>
+
+  <path class="response" d="M1165 516 V505 H1075 V500 H955 V590 H630 V595 H525 V585 H90 V454 H100"/>
+  <text x="493" y="612" font-size="11" fill="#047857">generated response returns through the tunnel</text>
+
+  <path d="M880 638 V610 H835 V462" fill="none" stroke="#e11d48" stroke-dasharray="5 6" marker-end="url(#arrow-green)" opacity="0.8"/>
+  <text x="842" y="605" font-size="10" fill="#9f1239">permissions</text>
+  <path d="M1255 492 V620 H1140 V638" fill="none" stroke="#64748b" stroke-dasharray="5 6"/>
+  <text x="1196" y="609" font-size="10" fill="#475569">weights</text>
+
+  <g filter="url(#shadow)">
+    <rect x="100" y="748" width="230" height="72" rx="13" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+    <circle cx="137" cy="784" r="21" fill="#f97316"/>
+    <text x="137" y="789" text-anchor="middle" font-size="10" font-weight="700" fill="#fff">CFN</text>
+    <text x="173" y="778" font-size="14" class="label">CloudFormation</text>
+    <text x="173" y="802" font-size="12" class="muted">Infrastructure as code</text>
+  </g>
+  <path class="provision" d="M330 784 H525 V278 H1080 V300"/>
+  <text x="538" y="296" font-size="11" fill="#c2410c">provisions IAM, networking, EC2 and storage</text>
+
+  <rect x="1180" y="788" width="250" height="48" rx="10" fill="#f8fafc" stroke="#94a3b8"/>
+  <text x="1305" y="817" text-anchor="middle" font-size="12" fill="#475569">Container registry + model library</text>
+  <path d="M1305 788 V738 H1375 V582" fill="none" stroke="#64748b" stroke-dasharray="5 6" marker-end="url(#arrow-green)" opacity="0.8"/>
+  <text x="1317" y="758" font-size="10" fill="#475569">outbound pulls</text>
+
+  <line x1="64" y1="861" x2="88" y2="861" class="request" marker-end="none"/>
+  <text x="98" y="865" font-size="11" fill="#334155">Request flow</text>
+  <line x1="218" y1="861" x2="242" y2="861" class="response" marker-end="none"/>
+  <text x="252" y="865" font-size="11" fill="#334155">Response flow</text>
+  <line x1="385" y1="861" x2="409" y2="861" class="provision" marker-end="none"/>
+  <text x="419" y="865" font-size="11" fill="#334155">Provisioning</text>
+  <text x="1540" y="865" text-anchor="end" font-size="11" font-style="italic" fill="#64748b">Ports 22 and 11434 remain closed to the internet</text>
+</svg>

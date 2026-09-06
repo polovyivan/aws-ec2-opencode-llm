@@ -1,0 +1,54 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="600" viewBox="0 0 1200 600" role="img" aria-labelledby="title desc">
+    <title id="title">CloudFormation: from template to managed stack</title>
+    <desc id="desc">The YAML file is the blueprint; the stack is the collection of AWS resources created from it.</desc>
+    <defs>
+      <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity="0.10"/></filter>
+      <marker id="arrow-gray" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L0,6 L9,3 z" fill="#64748b"/></marker>
+      <marker id="arrow-gray-start" markerWidth="10" markerHeight="10" refX="1" refY="3" orient="auto-start-reverse" markerUnits="strokeWidth"><path d="M9,0 L9,6 L0,3 z" fill="#64748b"/></marker>
+    </defs>
+    <rect width="1200" height="600" fill="#f8fafc"/>
+    <circle cx="72" cy="65" r="28" fill="#f97316"/>
+    <text x="72" y="72" text-anchor="middle" font-family="Inter,system-ui,sans-serif" font-size="15" font-weight="700" fill="#fff">01</text>
+    <text x="118" y="59" font-family="Inter,system-ui,sans-serif" font-size="25" font-weight="700" fill="#0f172a">CloudFormation: from template to managed stack</text>
+    <text x="118" y="87" font-family="Inter,system-ui,sans-serif" font-size="14" fill="#64748b">The YAML file is the blueprint; the stack is the collection of AWS resources created from it.</text>
+    <g font-family="Inter,ui-sans-serif,system-ui,sans-serif">
+      
+      <line x1="165" y1="295" x2="450" y2="295" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow-gray)"/><text x="307.5" y="285" text-anchor="middle" font-size="11" fill="#475569" paint-order="stroke" stroke="#f8fafc" stroke-width="5">deploy</text><line x1="450" y1="295" x2="725" y2="295" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow-gray)"/><text x="587.5" y="285" text-anchor="middle" font-size="11" fill="#475569" paint-order="stroke" stroke="#f8fafc" stroke-width="5">creates</text><line x1="725" y1="295" x2="1000" y2="181" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow-gray)"/><line x1="725" y1="295" x2="1000" y2="281" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow-gray)"/><line x1="725" y1="295" x2="1000" y2="381" stroke="#64748b" stroke-width="2.5" marker-end="url(#arrow-gray)"/>
+      
+      <g filter="url(#shadow)">
+        <rect x="60" y="245" width="210" height="100" rx="14" fill="#eff6ff" stroke="#2563eb" stroke-width="2"/>
+        <text x="165" y="288" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">YAML template</text>
+        <text x="165" y="315" text-anchor="middle" font-size="12" fill="#64748b">Version-controlled blueprint</text>
+      </g>
+      <g filter="url(#shadow)">
+        <rect x="340" y="245" width="220" height="100" rx="14" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+        <text x="450" y="288" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">CloudFormation</text>
+        <text x="450" y="315" text-anchor="middle" font-size="12" fill="#64748b">Resolves dependencies</text>
+      </g>
+      <g filter="url(#shadow)">
+        <rect x="630" y="245" width="190" height="100" rx="14" fill="#faf5ff" stroke="#9333ea" stroke-width="2"/>
+        <text x="725" y="288" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Stack</text>
+        <text x="725" y="315" text-anchor="middle" font-size="12" fill="#64748b">One managed unit</text>
+      </g>
+      <g filter="url(#shadow)">
+        <rect x="910" y="145" width="180" height="72" rx="14" fill="#ecfdf5" stroke="#059669" stroke-width="2"/>
+        <text x="1000" y="174" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">VPC + subnet</text>
+        <text x="1000" y="201" text-anchor="middle" font-size="12" fill="#64748b">Networking</text>
+      </g>
+      <g filter="url(#shadow)">
+        <rect x="910" y="245" width="180" height="72" rx="14" fill="#fff1f2" stroke="#e11d48" stroke-width="2"/>
+        <text x="1000" y="274" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">IAM role</text>
+        <text x="1000" y="301" text-anchor="middle" font-size="12" fill="#64748b">SSM permissions</text>
+      </g>
+      <g filter="url(#shadow)">
+        <rect x="910" y="345" width="180" height="72" rx="14" fill="#fff7ed" stroke="#f97316" stroke-width="2"/>
+        <text x="1000" y="374" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">EC2 GPU</text>
+        <text x="1000" y="401" text-anchor="middle" font-size="12" fill="#64748b">LLM compute</text>
+      </g>
+      <g filter="url(#shadow)">
+        <rect x="355" y="425" width="450" height="64" rx="14" fill="#f8fafc" stroke="#64748b" stroke-width="2"/>
+        <text x="580" y="450" text-anchor="middle" font-size="15" font-weight="700" fill="#0f172a">Create  •  update  •  delete</text>
+        <text x="580" y="477" text-anchor="middle" font-size="12" fill="#64748b">The same template controls the full lifecycle</text>
+      </g>
+    </g>
+  </svg>
